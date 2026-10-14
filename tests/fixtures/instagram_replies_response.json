@@ -1,0 +1,51 @@
+[
+ {
+  "url": "https://www.instagram.com/api/graphql",
+  "body": {
+   "data": {
+    "xdt_api__v1__media__media_id__comments__parent_comment_id__child_comments__connection": {
+     "edges": [
+      {
+       "node": {
+        "__typename": "XDTCommentDict",
+        "pk": "17960816703213558",
+        "text": "@user_14 best of luck",
+        "created_at": 1790977970,
+        "comment_like_count": 0,
+        "parent_comment_id": "18197147914386037",
+        "user": {
+         "username": "user_37",
+         "pk": "9000000013",
+         "is_verified": false
+        }
+       },
+       "cursor": ""
+      },
+      {
+       "node": {
+        "__typename": "XDTCommentDict",
+        "pk": "18075251204720399",
+        "text": "@user_14 best of luck bro",
+        "created_at": 1791002263,
+        "comment_like_count": 0,
+        "parent_comment_id": "18197147914386037",
+        "user": {
+         "username": "user_38",
+         "pk": "9000000014",
+         "is_verified": false
+        }
+       },
+       "cursor": ""
+      }
+     ],
+     "page_info": {
+      "end_cursor": null,
+      "has_next_page": false,
+      "has_previous_page": false,
+      "start_cursor": null
+     }
+    }
+   }
+  }
+ }
+]

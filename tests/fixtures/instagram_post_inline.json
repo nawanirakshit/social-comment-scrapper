@@ -1,0 +1,217 @@
+[
+ {
+  "url": "inline:script",
+  "body": {
+   "require": [
+    [
+     "ScheduledServerJS",
+     "handle",
+     null,
+     [
+      {
+       "__bbox": {
+        "require": [
+         [
+          "RelayPrefetchedStreamCache",
+          "next",
+          [],
+          [
+           "adp_PolarisLoggedOutDesktopWWWPostRootContentQueryRelayPreloader_6acf5bf25ac1d6e01977478",
+           {
+            "__bbox": {
+             "complete": true,
+             "result": {
+              "data": {
+               "xig_polaris_media": {
+                "__typename": "XIGPolarisImageMedia",
+                "pk": "3995984526930315060",
+                "code": "Dd0lsFvo4c0",
+                "if_not_gated_logged_out": {
+                 "__typename": "XIGPolarisImageMedia",
+                 "user": {
+                  "pk": "4337494523",
+                  "username": "swissmilitaryindia",
+                  "seo_canonical_url": null,
+                  "polaris_ordered_timeline_connection": {
+                   "edges": [
+                    {
+                     "node": {
+                      "__typename": "XIGPolarisImageMedia",
+                      "code": "Dd0lsFvo4c0",
+                      "pk": "3995984526930315060",
+                      "caption": {
+                       "text": "It’s time for a Giveaway Alert! 🚨​\nThink you’ve got an eye for detail?\n\nCount every wheel you can spot in the frame and drop your answer in the comments below.\n\nGet it right, and you could be one of 3 lucky winners to take home a Swiss Military Ghost-X. \n\nThree correct entries will be selected as winners.\n\nReady to roll? 😉\nWheel you get this right?\n\nHead to the comments section for complete contest details and T&Cs.\n.\n.\n.\n.\nSwiss Military | Ghost-X | Premium Luggage | Travel Luggage | Trolley Bag | Hard Luggage | Travel Essentials | Premium Travel Gear | Luggage Giveaway | Travel Giveaway | Giveaway"
+                      },
+                      "user": {
+                       "username": "swissmilitaryindia"
+                      }
+                     }
+                    },
+                    {
+                     "node": {
+                      "__typename": "XIGPolarisCarouselMedia",
+                      "code": "DebvVbwkgSt",
+                      "pk": "4007004474577126573",
+                      "caption": {
+                       "text": "Check the rules while planning your trip itinerary.\n.\n.\n.\n.\nRise Above the Rush | Swiss Military | Travel Lifestyle | Slow Travel | Premium Luggage"
+                      },
+                      "user": {
+                       "username": "swissmilitaryindia"
+                      }
+                     }
+                    }
+                   ]
+                  },
+                  "id": "17841404515692186",
+                  "is_unpublished": false,
+                  "full_name": "SWISS MILITARY INDIA",
+                  "is_verified": false,
+                  "is_private": false,
+                  "__typename": "User",
+                  "profile_image_uri": "https://scontent.cdninstagram.com/v/t51.82787-19/765970403_18419620480150524_6944457858826295654_n.jpg?stp=cp0_dst-jpg_s34x34_tt6&_nc_cat=109&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=Fq7bfqrAwnQQ7kNvwEh80Vt&_nc_oc=AdrXxQkcJKV9RqFKr9U11V7OhUow7yTl7V3uW4_mWaMqkkAaC4ZK0P0l8JpoSSTmS2A&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=VGki7mxW7r5JCuAQ03JxJg&_nc_ss=78689&oh=00_AQNNsi2dBVnSFAAZpFUdpTm9cQa-J65RHf0gx_URWM-UmA&oe=6AD51893"
+                 },
+                 "__isXIGPolarisMedia": "XIGPolarisImageMedia",
+                 "pk": "3995984526930315060",
+                 "code": "Dd0lsFvo4c0",
+                 "taken_at": 1790578499,
+                 "media_type": 1,
+                 "product_type": "feed",
+                 "coauthor_producers": [],
+                 "ai_label_info": null,
+                 "location": null,
+                 "seo_canonical_url": null,
+                 "like_count": 685,
+                 "like_and_view_counts_disabled": false,
+                 "comment_count": 687,
+                 "commenting_disabled_for_viewer": null,
+                 "caption": {
+                  "pk": "17893631550427195",
+                  "has_translation": null,
+                  "text": "It’s time for a Giveaway Alert! 🚨​\nThink you’ve got an eye for detail?\n\nCount every wheel you can spot in the frame and drop your answer in the comments below.\n\nGet it right, and you could be one of 3 lucky winners to take home a Swiss Military Ghost-X. \n\nThree correct entries will be selected as winners.\n\nReady to roll? 😉\nWheel you get this right?\n\nHead to the comments section for complete contest details and T&Cs.\n.\n.\n.\n.\nSwiss Military | Ghost-X | Premium Luggage | Travel Luggage | Trolley Bag | Hard Luggage | Travel Essentials | Premium Travel Gear | Luggage Giveaway | Travel Giveaway | Giveaway",
+                  "created_at": 1790578500
+                 },
+                 "caption_is_edited": false,
+                 "original_height": 2048,
+                 "original_width": 1638,
+                 "id": "POLARIS_3995984526930315060",
+                 "accessibility_caption": "Photo by SWISS MILITARY INDIA on September 27, 2026. May be an image of suitcase, luggage and text.",
+                 "display_uri": "https://scontent.cdninstagram.com/v/t39.30808-6/825373360_1395305762738378_8109443678928097037_n.jpg?stp=dst-jpg_e35_s640x640_tt6&_nc_cat=111&ccb=7-5&_nc_sid=18de74&efg=eyJlZmdfdGFnIjoiRkVFRC5iZXN0X2ltYWdlX3VybGdlbi5DMyJ9&_nc_ohc=o7KnAvHTdsIQ7kNvwGlQ-JQ&_nc_oc=AdpuvNsClhST0_fJxoudsJtmycAOTC73pmbalr1ELSGyfjVQRwsB45Mkcz_iL84M9fk&_nc_zt=23&_nc_ht=scontent.cdninstagram.com&_nc_gid=VGki7mxW7r5JCuAQ03JxJg&_nc_ss=78689&oh=00_AQOtcTq9l4nDbY2nvrBcNqajXVzaPVoejLTFmg5ZgZE1hA&oe=6AD5150C",
+                 "image_versions2": {
+                  "candidates": [
+                   {
+                    "url": "https://instagram.fdel21-1.fna.fbcdn.net/v/t39.30808-6/825373360_1395305762738378_8109443678928097037_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=111&_nc_map=urlgen_bucketless&ig_cache_key=Mzk5NTk4NDUyNjkzMDMxNTA2MA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6IkZFRUQueHBpZHMuMTYzOC5zZHIucmVndWxhcl9waG90by5DMyJ9&_nc_ohc=o7KnAvHTdsIQ7kNvwGlQ-JQ&_nc_oc=AdpuvNsClhST0_fJxoudsJtmycAOTC73pmbalr1ELSGyfjVQRwsB45Mkcz_iL84M9fk&_nc_zt=23&_nc_ht=instagram.fdel21-1.fna&_nc_gid=VGki7mxW7r5JCuAQ03JxJg&_nc_ss=78689&oh=00_AQPEtWqgGRxKIHeRARtg3HKpmIn91nO8okuLeo-NdCj2zw&oe=6AD5150C"
+                   }
+                  ],
+                  "additional_candidates": null
+                 },
+                 "if_is_crawler": null
+                },
+                "gating_ruling": null,
+                "id": "POLARIS_3995984526930315060",
+                "comments_connection": {
+                 "edges": [
+                  {
+                   "node": {
+                    "pk": "18152951770490418",
+                    "created_at": 1791966119,
+                    "is_covered": false,
+                    "restricted_status": null,
+                    "has_translation": null,
+                    "user": {
+                     "username": "user_34",
+                     "id": "9000000010",
+                     "is_unpublished": false,
+                     "pk": "9000000010",
+                     "is_verified": false
+                    },
+                    "child_comment_count": null,
+                    "text": "32 @swissmilitaryindia",
+                    "giphy_media_info": null,
+                    "parent_comment_id": null,
+                    "comment_like_count": 0,
+                    "id": "18152951770490418",
+                    "__typename": "XIGComment"
+                   },
+                   "cursor": null
+                  },
+                  {
+                   "node": {
+                    "pk": "18152512774545957",
+                    "created_at": 1791912033,
+                    "is_covered": false,
+                    "restricted_status": null,
+                    "has_translation": null,
+                    "user": {
+                     "username": "user_35",
+                     "id": "9000000011",
+                     "is_unpublished": false,
+                     "pk": "9000000011",
+                     "is_verified": false
+                    },
+                    "child_comment_count": null,
+                    "text": "When will the results be out?",
+                    "giphy_media_info": null,
+                    "parent_comment_id": null,
+                    "comment_like_count": 0,
+                    "id": "18152512774545957",
+                    "__typename": "XIGComment"
+                   },
+                   "cursor": null
+                  },
+                  {
+                   "node": {
+                    "pk": "17895816513421099",
+                    "created_at": 1791608679,
+                    "is_covered": false,
+                    "restricted_status": null,
+                    "has_translation": null,
+                    "user": {
+                     "username": "user_36",
+                     "id": "9000000012",
+                     "is_unpublished": false,
+                     "pk": "9000000012",
+                     "is_verified": false
+                    },
+                    "child_comment_count": null,
+                    "text": "20",
+                    "giphy_media_info": null,
+                    "parent_comment_id": null,
+                    "comment_like_count": 0,
+                    "id": "17895816513421099",
+                    "__typename": "XIGComment"
+                   },
+                   "cursor": null
+                  }
+                 ],
+                 "geoblocked_comment_notices": [],
+                 "page_info": {
+                  "end_cursor": "{\"is_server_cursor_inverse\":true,\"server_cursor\":\"AQHTzcQbKnXLJV46LeVB625251-PmvpEgiVOs26olgwR5hwbi5YCNTG0fRXbODQmyp8qgLOyXO3jlhAP6l7SYWloJA\"}",
+                  "has_next_page": true
+                 }
+                }
+               }
+              },
+              "extensions": {
+               "is_final": true
+              }
+             },
+             "sequence_number": 0
+            }
+           }
+          ]
+         ]
+        ]
+       }
+      },
+      {
+       "__bbox": null
+      },
+      {
+       "__bbox": null
+      }
+     ]
+    ]
+   ]
+  }
+ }
+]

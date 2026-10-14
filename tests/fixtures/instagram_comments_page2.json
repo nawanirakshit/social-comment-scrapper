@@ -1,0 +1,101 @@
+[
+ {
+  "url": "https://www.instagram.com/api/graphql",
+  "body": {
+   "data": {
+    "xig_polaris_media": {
+     "__typename": "XIGPolarisImageMedia",
+     "comments_connection": {
+      "edges": [
+       {
+        "node": {
+         "pk": "18568984945072704",
+         "created_at": 1791365249,
+         "is_covered": false,
+         "restricted_status": null,
+         "has_translation": null,
+         "user": {
+          "username": "user_01",
+          "id": "9000000001",
+          "is_unpublished": false,
+          "pk": "9000000001",
+          "is_verified": false
+         },
+         "child_comment_count": null,
+         "text": "46 wheels,@user_02",
+         "giphy_media_info": null,
+         "parent_comment_id": null,
+         "comment_like_count": 0,
+         "id": "18568984945072704",
+         "__typename": "XIGComment"
+        },
+        "cursor": null
+       },
+       {
+        "node": {
+         "pk": "18636544249027814",
+         "created_at": 1791354830,
+         "is_covered": false,
+         "restricted_status": null,
+         "has_translation": null,
+         "user": {
+          "username": "user_03",
+          "id": "9000000002",
+          "is_unpublished": false,
+          "pk": "9000000002",
+          "is_verified": false
+         },
+         "child_comment_count": null,
+         "text": "24",
+         "giphy_media_info": null,
+         "parent_comment_id": null,
+         "comment_like_count": 0,
+         "id": "18636544249027814",
+         "__typename": "XIGComment"
+        },
+        "cursor": null
+       },
+       {
+        "node": {
+         "pk": "17977594647135086",
+         "created_at": 1791320209,
+         "is_covered": false,
+         "restricted_status": null,
+         "has_translation": null,
+         "user": {
+          "username": "user_04",
+          "id": "9000000003",
+          "is_unpublished": false,
+          "pk": "9000000003",
+          "is_verified": false
+         },
+         "child_comment_count": null,
+         "text": "And the answer isssss 20teeeeee",
+         "giphy_media_info": null,
+         "parent_comment_id": null,
+         "comment_like_count": 0,
+         "id": "17977594647135086",
+         "__typename": "XIGComment"
+        },
+        "cursor": null
+       }
+      ],
+      "geoblocked_comment_notices": [],
+      "page_info": {
+       "end_cursor": null,
+       "has_next_page": false
+      }
+     },
+     "id": "POLARIS_3995984526930315060"
+    }
+   },
+   "extensions": {
+    "server_metadata": {
+     "request_start_time_ms": 1791974397338,
+     "time_at_flush_ms": 1791974397790
+    },
+    "is_final": true
+   }
+  }
+ }
+]

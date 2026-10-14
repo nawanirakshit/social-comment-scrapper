@@ -1,0 +1,81 @@
+{
+  "title": "Social post scraper input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "startUrls": {
+      "title": "Post URLs",
+      "type": "array",
+      "description": "Public Instagram post/reel URLs (instagram.com/p/... or /reel/...) or Facebook post URLs.",
+      "editor": "requestListSources",
+      "prefill": [
+        {
+          "url": "https://www.instagram.com/p/C0abcdefghi/"
+        }
+      ]
+    },
+    "maxComments": {
+      "title": "Max comments per post",
+      "type": "integer",
+      "description": "Stop collecting top-level comments for a post after this many. Replies (see Include replies) come on top.",
+      "default": 50,
+      "minimum": 0
+    },
+    "includeReplies": {
+      "title": "Include replies",
+      "type": "boolean",
+      "description": "Click each 'View all N replies' link and save the replies too, right under their parent comment. Adds one request per thread.",
+      "default": false
+    },
+    "maxLoadMoreRounds": {
+      "title": "Max load-more rounds per post",
+      "type": "integer",
+      "description": "Optional. How many times to click 'load more' or scroll the comments panel. Each round adds about 7 comments. Leave empty to work it out from Max comments.",
+      "minimum": 0,
+      "maximum": 500,
+      "editor": "number"
+    },
+    "requestTimeoutSecs": {
+      "title": "Time limit per post (seconds)",
+      "type": "integer",
+      "description": "Optional. If a post takes longer, its results are lost and it is retried. Leave empty to allow about 7 s per round plus 60 s.",
+      "minimum": 30,
+      "maximum": 3600,
+      "editor": "number"
+    },
+    "saveRawResponses": {
+      "title": "Save raw network responses (debug)",
+      "type": "boolean",
+      "description": "Store every captured JSON response in the key-value store so you can study the structure and write parsers.",
+      "default": true
+    },
+    "proxyConfiguration": {
+      "title": "Proxy",
+      "type": "object",
+      "description": "Residential proxies are strongly recommended for Instagram and Facebook.",
+      "editor": "proxy",
+      "prefill": {
+        "useApifyProxy": true,
+        "apifyProxyGroups": [
+          "RESIDENTIAL"
+        ]
+      }
+    },
+    "sessionStatePath": {
+      "title": "Session file path (local runs)",
+      "type": "string",
+      "description": "Optional. Path to a Playwright storage-state file made by scripts/save_session.py with a spare Instagram account. Leave empty to scrape logged out.",
+      "editor": "textfield"
+    },
+    "sessionState": {
+      "title": "Session state JSON (platform runs)",
+      "type": "string",
+      "description": "Optional. Contents of the session file, for runs on the Apify platform. Stored encrypted. Takes precedence over sessionStatePath.",
+      "editor": "textarea",
+      "isSecret": true
+    }
+  },
+  "required": [
+    "startUrls"
+  ]
+}

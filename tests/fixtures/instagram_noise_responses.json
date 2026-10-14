@@ -1,0 +1,38 @@
+[
+ {
+  "url": "https://www.instagram.com/api/graphql",
+  "body": {
+   "data": {
+    "experiments": [
+     {
+      "id": "ig_desktop_dynamic_interaction_dialogs_launch",
+      "param": null,
+      "value": "true"
+     }
+    ]
+   },
+   "extensions": {
+    "server_metadata": {
+     "request_start_time_ms": 1791974194409,
+     "time_at_flush_ms": 1791974194422
+    },
+    "is_final": true
+   }
+  }
+ },
+ {
+  "url": "https://www.instagram.com/api/graphql",
+  "body": {
+   "errors": [
+    {
+     "message": "Unauthorized logged out query.",
+     "severity": "CRITICAL",
+     "code": 1675002
+    }
+   ],
+   "extensions": {
+    "is_final": true
+   }
+  }
+ }
+]

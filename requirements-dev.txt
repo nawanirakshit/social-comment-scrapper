@@ -1,0 +1,4 @@
+# Local tools: tests and the Excel export. Not installed in the Apify image.
+-r requirements.txt
+pytest>=9
+openpyxl>=3.1

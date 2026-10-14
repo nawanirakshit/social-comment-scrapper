@@ -1,0 +1,24 @@
+{
+  "actorSpecification": 1,
+  "name": "social-post-scraper",
+  "title": "Instagram & Facebook Post Scraper",
+  "description": "Learning project: scrapes public Instagram and Facebook posts, comments and engagement counts.",
+  "version": "0.1",
+  "buildTag": "latest",
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile",
+  "storages": {
+    "dataset": {
+      "actorSpecification": 1,
+      "views": {
+        "overview": {
+          "title": "Posts",
+          "transformation": {
+            "fields": ["platform", "type", "url", "author", "text", "likes", "commentsCount", "timestamp"]
+          },
+          "display": { "component": "table" }
+        }
+      }
+    }
+  }
+}

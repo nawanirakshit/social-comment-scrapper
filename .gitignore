@@ -1,0 +1,25 @@
+# Logged-in Instagram session (scripts/save_session.py). Never commit: it works like a password.
+.secrets/
+
+# Scraped data, raw responses and your INPUT.json. They contain other people's
+# usernames and comments, so they stay local.
+storage/
+results.xlsx
+*.xlsx
+*.csv
+
+# Apify token, if you keep one in an env file
+.env
+.env.*
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
