@@ -107,6 +107,52 @@ REPLAY_HEADERS = ("content-type", "x-asbd-id", "x-csrftoken", "x-fb-friendly-nam
                   "x-fb-lsd", "x-ig-app-id", "x-ig-max-touch-points")
 
 
+# A secure page served by the browser itself (never hits the network), used to read
+# the browser's client-hint details before overriding the user agent.
+UA_PROBE_URL = "https://ua-probe.invalid/"
+UA_HINTS_JS = """async () => {
+    const d = await navigator.userAgentData.getHighEntropyValues(
+        ['architecture', 'bitness', 'model', 'platformVersion', 'fullVersionList', 'wow64']);
+    return {
+        brands: navigator.userAgentData.brands,
+        fullVersionList: d.fullVersionList,
+        platform: navigator.userAgentData.platform,
+        platformVersion: d.platformVersion,
+        architecture: d.architecture,
+        model: d.model,
+        mobile: navigator.userAgentData.mobile,
+        bitness: d.bitness,
+        wow64: d.wow64,
+    };
+}"""
+
+
+async def match_headed_user_agent(page) -> None:
+    """Make a headless page identify itself exactly like a visible Chrome.
+
+    Headless Chromium says "HeadlessChrome" in its User-Agent, an easy bot signal.
+    Overriding only the User-Agent string drops the sec-ch-ua client-hint headers,
+    so the browser's own client hints (which don't mention headless) are passed too.
+    """
+    ua = await page.evaluate("navigator.userAgent")
+    if "HeadlessChrome" not in ua:
+        return
+
+    async def serve_probe(route):
+        await route.fulfill(body="<html></html>", content_type="text/html")
+
+    await page.route(UA_PROBE_URL, serve_probe)
+    await page.goto(UA_PROBE_URL)
+    hints = await page.evaluate(UA_HINTS_JS)
+    await page.unroute(UA_PROBE_URL)
+
+    cdp = await page.context.new_cdp_session(page)
+    await cdp.send("Network.setUserAgentOverride", {
+        "userAgent": ua.replace("HeadlessChrome", "Chrome"),
+        "userAgentMetadata": hints,
+    })
+
+
 def detect_platform(url: str) -> str | None:
     if "instagram.com" in url:
         return "instagram"
@@ -121,6 +167,7 @@ async def main() -> None:
         start_urls = [u["url"] for u in actor_input.get("startUrls", []) if u.get("url")]
         max_comments: int = actor_input.get("maxComments", 50)
         save_raw: bool = actor_input.get("saveRawResponses", True)
+        headless: bool = actor_input.get("headless", True)
 
         # Optional logged-in sessions (spare accounts), made by scripts/save_session.py.
         # Each platform's cookies only apply to its own domain, so both are merged
@@ -174,7 +221,10 @@ async def main() -> None:
 
         crawler = PlaywrightCrawler(
             proxy_configuration=proxy,
-            headless=False,
+            # No browser window by default. Set "headless": false in the input to watch it.
+            headless=headless,
+            # Headless mode of the full Chromium build, which behaves like the visible one.
+            browser_launch_options={"channel": "chromium"} if headless else None,
             # With a session, load its cookies and keep the browser identical to the
             # one used to log in: a new random fingerprint each run looks like the
             # account hopping between devices, which triggers Instagram's checks.
@@ -251,6 +301,8 @@ async def main() -> None:
 
         @crawler.pre_navigation_hook
         async def attach_listener(context: PlaywrightPreNavCrawlingContext) -> None:
+            if headless:
+                await match_headed_user_agent(context.page)
             bucket = captured.setdefault(context.request.url, [])
 
             async def on_response(response) -> None:

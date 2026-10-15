@@ -129,6 +129,7 @@ Edit it, then run again.
 | `maxLoadMoreRounds` | Optional. Maximum scroll/"load more" rounds. Each round adds roughly 7–10 comments. | worked out from `maxComments` |
 | `requestTimeoutSecs` | Optional. Time limit per post. **If it runs out, that post's rows are lost** and it is retried. | about 7 s per round + 60 s (doubled with replies) |
 | `saveRawResponses` | Save every captured JSON response to the key-value store. Useful when Instagram changes its format. | `true` |
+| `headless` | Run the browser without a window. Set `false` to watch it while debugging. Either way the browser identifies itself as regular Chrome, not "HeadlessChrome". | `true` |
 | `proxyConfiguration` | Apify Proxy settings. Needs a token; see above. | no proxy |
 | `sessionStatePath` | Path to a saved **Instagram** session file for local runs; see below. Empty means logged out. | empty |
 | `sessionState` | The same Instagram session, pasted as JSON. Used on the Apify platform, where it's stored encrypted. | empty |

@@ -49,6 +49,12 @@
       "description": "Store every captured JSON response in the key-value store so you can study the structure and write parsers.",
       "default": true
     },
+    "headless": {
+      "title": "Run without a browser window",
+      "type": "boolean",
+      "description": "Hide the browser (headless). Turn off to watch the browser while debugging locally. The browser still identifies itself as regular Chrome either way.",
+      "default": true
+    },
     "proxyConfiguration": {
       "title": "Proxy",
       "type": "object",
