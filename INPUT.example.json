@@ -1,8 +1,15 @@
 {
-  "startUrls": [{ "url": "https://www.instagram.com/p/POST_SHORTCODE/" }],
+  "startUrls": [
+    {
+      "url": "https://www.instagram.com/p/POST_SHORTCODE/"
+    }
+  ],
   "maxComments": 200,
   "includeReplies": false,
   "saveRawResponses": false,
-  "proxyConfiguration": { "useApifyProxy": false },
-  "sessionStatePath": ""
+  "proxyConfiguration": {
+    "useApifyProxy": false
+  },
+  "sessionStatePath": "",
+  "facebookSessionStatePath": ""
 }

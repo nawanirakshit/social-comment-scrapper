@@ -1,7 +1,7 @@
-# Instagram Post & Comments Scraper (Apify actor)
+# Instagram & Facebook Post Comments Scraper (Apify actor)
 
-A learning project that scrapes a **public Instagram post**, along with its comments
-and, optionally, their replies, and writes the results to an Excel file. It is built as an
+A learning project that scrapes a **public Instagram or Facebook post**, along with its
+comments and, optionally, their replies, and writes the results to an Excel file. It is built as an
 [Apify](https://apify.com) actor with Python, [Crawlee](https://crawlee.dev/python) and
 Playwright, so you can run it on your own machine or deploy it to the Apify platform.
 
@@ -10,10 +10,10 @@ What you get for each post:
 | Post | Each comment / reply |
 |---|---|
 | author, caption, posted time (UTC) | author, text, posted time (UTC) |
-| like count, comment count | like count, reply count |
+| like count, comment count, shares (Facebook) | like count, reply count |
 | full-size image URL | which comment it replies to |
 
-> Facebook parsing exists in `src/parsers.py` but has **not been tested** yet.
+Instagram and Facebook URLs can be mixed in one run.
 
 ---
 
@@ -44,9 +44,15 @@ What you get for each post:
 5. Each post and each comment becomes a row in the Apify dataset; `scripts/export_excel.py`
    turns the dataset into `results.xlsx`.
 
-**Logged out vs logged in.** Without logging in, Instagram serves at most about 30–45
-comments, and its counts can be stale. With a session from a **spare** Instagram
-account (see below), the scraper can page through all top-level comments and replies.
+**Logged out vs logged in.**
+- **Instagram, logged out:** at most about 30–45 comments, and the counts are Instagram-only.
+  Logged in, the counts include engagement from the cross-posted Facebook post, and the
+  scraper can page through all top-level comments and replies.
+- **Facebook, logged out:** roughly the first 10 comments, and Facebook soon shows a login
+  wall instead of the post. Logged in, the scraper switches the comment list from "Most
+  relevant" to **"All comments"** and loads them all.
+
+Logging in needs a session from a **spare** account (see below).
 
 ## Requirements
 
@@ -124,27 +130,31 @@ Edit it, then run again.
 | `requestTimeoutSecs` | Optional. Time limit per post. **If it runs out, that post's rows are lost** and it is retried. | about 7 s per round + 60 s (doubled with replies) |
 | `saveRawResponses` | Save every captured JSON response to the key-value store. Useful when Instagram changes its format. | `true` |
 | `proxyConfiguration` | Apify Proxy settings. Needs a token; see above. | no proxy |
-| `sessionStatePath` | Path to a saved Instagram session file for local runs; see below. Empty means logged out. | empty |
-| `sessionState` | The same session, pasted as JSON. Used on the Apify platform, where it's stored encrypted. | empty |
+| `sessionStatePath` | Path to a saved **Instagram** session file for local runs; see below. Empty means logged out. | empty |
+| `sessionState` | The same Instagram session, pasted as JSON. Used on the Apify platform, where it's stored encrypted. | empty |
+| `facebookSessionStatePath` | Path to a saved **Facebook** session file for local runs. | empty |
+| `facebookSessionState` | The same Facebook session, pasted as JSON, for the Apify platform. | empty |
 
 The loop stops early when Instagram reports there are no more comments, when
 `maxComments` is reached, or when a login or verification dialog appears.
 
-## Optional: use a logged-in Instagram session
+## Optional: use logged-in sessions
 
-Use a **spare account, never your personal one.** Automated browsing can get an account
+Use **spare accounts, never your personal ones.** Automated browsing can get an account
 rate-limited, sent to "verify it's you" checks, or banned.
 
 1. Save a session by logging in by hand. A browser window opens, and the script only keeps the
    resulting cookies, never your password:
    ```bash
-   .venv/bin/python scripts/save_session.py
+   .venv/bin/python scripts/save_session.py            # Instagram -> .secrets/ig_state.json
+   .venv/bin/python scripts/save_session.py facebook   # Facebook  -> .secrets/fb_state.json
    ```
-   Log in, including any 2FA prompt. The session is saved to `.secrets/ig_state.json`, which is
-   git-ignored. **Treat that file like a password.**
-2. Point the input at it:
+   Log in, including any 2FA prompt. `.secrets/` is git-ignored. **Treat these files like
+   passwords.**
+2. Point the input at them. You can use either one or both:
    ```json
-   "sessionStatePath": ".secrets/ig_state.json"
+   "sessionStatePath": ".secrets/ig_state.json",
+   "facebookSessionStatePath": ".secrets/fb_state.json"
    ```
 3. When the session expires or Instagram asks the account to verify itself, the actor writes
    an error row `session_expired` and stops. Run `save_session.py` again. The actor never
@@ -211,7 +221,9 @@ replaced with pseudonyms (`user_01`, …).
 | Log says `Stopped at the round limit` | Raise `maxLoadMoreRounds` (and `requestTimeoutSecs` if you set it). |
 | Log says `…although Instagram says more exist` | Instagram is slowing the account down. Wait before running again. |
 | `debug_no_scroll_panel` screenshot in the key-value store | The comments panel never rendered. Open the screenshot to see what the page showed. |
-| `session_expired` row | Run `scripts/save_session.py` again. |
+| `session_expired` row | Run `scripts/save_session.py` again (add `facebook` for a Facebook session). |
+| `login_wall` row on Facebook, with a `debug_login_wall` screenshot | Facebook showed its login form instead of the post. Use a Facebook session, or wait before retrying. |
+| Log says `Page never went network-idle` | Normal for logged-in Facebook, which keeps chat connections open. The run continues. |
 | `Can't write results.xlsx` | Close the file in Excel and rerun the export. |
 
 ## Limits and responsible use

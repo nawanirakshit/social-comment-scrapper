@@ -16,7 +16,8 @@ from pathlib import Path
 
 import pytest
 
-from src.parsers import dig, instagram_has_more_comments, nest_replies, parse_count, parse_instagram, unix_to_iso
+from src.parsers import (dig, has_more_comments, instagram_has_more_comments, nest_replies, parse_count,
+                         parse_facebook, parse_instagram, unix_to_iso)
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -193,3 +194,51 @@ def test_has_more_comments_uses_latest_page(logged_in):
     assert instagram_has_more_comments(load("instagram_noise_responses.json")) is None
     # Reply threads have their own page_info; they must not count as the comment list.
     assert instagram_has_more_comments(logged_in + load("instagram_replies_response.json")) is True
+
+
+# ---------------------------------------------------------------- Facebook
+#
+# facebook_logged_in_responses.json: from a logged-in run (spare account) on a
+# Swiss Military Worldwide post, cut down to the real shapes the parser uses:
+# [0] the page's Story (node_v2), [1] feedback objects: another post's first
+# (decoy, 12 reactions), then the post's own (79 reactions, 23 shares, 66 comments),
+# [2] a comments page with 3 comments and one bare id-only reference.
+# Commenter names are pseudonyms (User 01, ...).
+
+@pytest.fixture
+def facebook() -> list[dict]:
+    return load("facebook_logged_in_responses.json")
+
+
+def test_facebook_post_fields(facebook):
+    post, _ = parse_facebook(facebook, {"title": None, "description": None, "image": None})
+    assert post["author"] == "Swiss Military Worldwide"
+    assert post["text"].startswith("It’s time for a Giveaway Alert!")
+    assert post["timestamp"] == "2026-09-28T06:54:55Z"
+    assert post["imageUrl"].startswith("https://")
+
+
+def test_facebook_counts_come_from_the_posts_own_feedback(facebook):
+    post, _ = parse_facebook(facebook, {})
+    # The decoy feedback (12 reactions) comes first; it belongs to another post.
+    assert (post["likes"], post["commentsCount"], post["shares"]) == (79, 66, 23)
+
+
+def test_facebook_comments_skip_bare_references(facebook):
+    _, comments = parse_facebook(facebook, {})
+    assert [c["author"] for c in comments] == ["User 01", "User 02", "User 03"]
+    assert comments[0]["likes"] == 1  # from the "count_reduced" display string
+    assert comments[0]["replies"] == 0
+    assert comments[0]["parentId"] is None
+    assert comments[0]["timestamp"] == "2026-09-29T09:56:04Z"
+
+
+def test_facebook_has_more_comments(facebook):
+    assert has_more_comments("facebook", facebook) is False
+    assert has_more_comments("facebook", facebook[:2]) is None
+
+
+def test_facebook_missing_data_gives_none():
+    post, comments = parse_facebook([{"url": "x", "body": None}, {"url": "y"}], {})
+    assert set(post.values()) == {None}
+    assert comments == []

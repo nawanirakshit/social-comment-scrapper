@@ -62,15 +62,28 @@
       }
     },
     "sessionStatePath": {
-      "title": "Session file path (local runs)",
+      "title": "Instagram session file path (local runs)",
       "type": "string",
       "description": "Optional. Path to a Playwright storage-state file made by scripts/save_session.py with a spare Instagram account. Leave empty to scrape logged out.",
       "editor": "textfield"
     },
     "sessionState": {
-      "title": "Session state JSON (platform runs)",
+      "title": "Instagram session state JSON (platform runs)",
       "type": "string",
       "description": "Optional. Contents of the session file, for runs on the Apify platform. Stored encrypted. Takes precedence over sessionStatePath.",
+      "editor": "textarea",
+      "isSecret": true
+    },
+    "facebookSessionStatePath": {
+      "title": "Facebook session file path (local runs)",
+      "type": "string",
+      "description": "Optional. Path to a session file made by `scripts/save_session.py facebook` with a spare Facebook account. Leave empty to scrape Facebook logged out.",
+      "editor": "textfield"
+    },
+    "facebookSessionState": {
+      "title": "Facebook session state JSON (platform runs)",
+      "type": "string",
+      "description": "Optional. Contents of the Facebook session file, for runs on the Apify platform. Stored encrypted. Takes precedence over facebookSessionStatePath.",
       "editor": "textarea",
       "isSecret": true
     }

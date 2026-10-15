@@ -189,34 +189,89 @@ def meta_date_to_iso(text: str) -> str | None:
 
 # ---------------------------------------------------------------- Facebook
 
+# Where the data lives (checked against raw_* records Oct 2026, logged out and in):
+#
+#   Post: inline <script type="application/json"> blobs in the page HTML.
+#     Story node (data.node_v2): creation_time (unix seconds), actors[0].name,
+#     comet_sections.content.story.message.text (caption),
+#     attachments[0].styles.attachment.media.photo_image.uri, feedback.id
+#   Counts: the feedback object(s) whose id equals the Story's feedback.id:
+#     reaction_count.count, share_count.count,
+#     comment_rendering_instance.comments.total_count
+#     Logged-in pages also carry other posts' feedback, so match on that id.
+#   Comments page 1: same blob, ...comment_rendering_instance_for_feed_location.comments
+#     .edges[].node, with page_info.has_next_page
+#   Comment node (__typename "Comment"): id, created_time, author.name, body.text,
+#     feedback.reactors.count_reduced (a display string: "9", "1.2K"),
+#     feedback.replies_fields.total_count, comment_direct_parent.id (replies only)
+#   Some Comment nodes are bare references holding only an id; they are skipped.
+#   Logged in, the list defaults to "Most relevant", which filters some comments out.
+
 def parse_facebook(responses: list[dict], meta: dict) -> tuple[dict, list[dict]]:
     post: dict = {"author": meta.get("title"), "text": meta.get("description"),
                   "likes": None, "commentsCount": None, "shares": None,
                   "timestamp": None, "imageUrl": meta.get("image")}
     comments: list[dict] = []
+    nodes = [d for r in responses for d in walk(r.get("body"))]
 
-    for node in (d for r in responses for d in walk(r["body"])):
-        # Reaction / comment / share totals usually sit together in a "feedback" object.
-        # TODO: verify against raw_* records; Facebook renames these often.
-        if "reaction_count" in node and isinstance(node["reaction_count"], dict):
-            post["likes"] = node["reaction_count"].get("count", post["likes"])
-        if "comment_rendering_instance" in node:
-            total = (node["comment_rendering_instance"] or {}).get("comments", {}).get("total_count")
-            post["commentsCount"] = total or post["commentsCount"]
-        if "share_count" in node and isinstance(node["share_count"], dict):
-            post["shares"] = node["share_count"].get("count", post["shares"])
+    # The post itself. Comments can embed other Stories (attached_story), so only
+    # trust the page's main node.
+    story = next((n["node_v2"] for n in nodes
+                  if isinstance(n.get("node_v2"), dict) and n["node_v2"].get("__typename") == "Story"), None)
+    feedback_id = dig(story, "feedback", "id")
+    if story:
+        fill(post, "timestamp", unix_to_iso(story.get("creation_time")))
+        fill(post, "author", dig(story, "actors", 0, "name"))
+        fill(post, "text", dig(story, "comet_sections", "content", "story", "message", "text"))
+        fill(post, "imageUrl", dig(story, "attachments", 0, "styles", "attachment", "media", "photo_image", "uri"))
 
-        # Comment nodes: __typename == "Comment" with a body and author.
-        if node.get("__typename") == "Comment":
+    for node in nodes:
+        # Totals sit in "feedback" objects. Use the post's own (matching id); without
+        # a Story to compare against, fall back to the first one found.
+        if feedback_id is None or node.get("id") == feedback_id:
+            if post["likes"] is None and isinstance(node.get("reaction_count"), dict):
+                post["likes"] = node["reaction_count"].get("count")
+            if post["commentsCount"] is None and isinstance(node.get("comment_rendering_instance"), dict):
+                post["commentsCount"] = dig(node, "comment_rendering_instance", "comments", "total_count")
+            if post["shares"] is None and isinstance(node.get("share_count"), dict):
+                post["shares"] = node["share_count"].get("count")
+
+        if node.get("__typename") == "Comment" and node.get("created_time") is not None:
+            likes = dig(node, "feedback", "reactors", "count_reduced")
+            if likes is None:
+                likes = dig(node, "feedback", "reactors", "count")
             comments.append({
                 "id": node.get("id"),
-                "author": (node.get("author") or {}).get("name"),
-                "text": (node.get("body") or {}).get("text"),
-                "likes": ((node.get("feedback") or {}).get("reactors") or {}).get("count"),
-                "timestamp": node.get("created_time"),
+                "author": dig(node, "author", "name"),
+                "text": dig(node, "body", "text"),
+                "likes": parse_count(likes) if isinstance(likes, str) else likes,
+                "replies": dig(node, "feedback", "replies_fields", "total_count"),
+                "parentId": dig(node, "comment_direct_parent", "id"),
+                "timestamp": unix_to_iso(node.get("created_time")),
             })
 
     return post, dedupe(comments)
+
+
+def facebook_has_more_comments(responses: list[dict]) -> bool | None:
+    """has_next_page of the most recent top-level comments page, or None if none seen.
+
+    Top-level pages are "comments" connections; reply threads use "replies_connection".
+    """
+    latest = None
+    for node in (d for r in responses for d in walk(r.get("body"))):
+        page_info = dig(node, "comments", "page_info")
+        if isinstance(page_info, dict) and "has_next_page" in page_info and "edges" in node["comments"]:
+            latest = bool(page_info["has_next_page"])
+    return latest
+
+
+def has_more_comments(platform: str | None, responses: list[dict]) -> bool | None:
+    if platform == "instagram":
+        return instagram_has_more_comments(responses)
+    if platform == "facebook":
+        return facebook_has_more_comments(responses)
+    return None
 
 
 def nest_replies(comments: list[dict], max_top_level: int) -> list[dict]:

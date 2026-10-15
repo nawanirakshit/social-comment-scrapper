@@ -25,9 +25,10 @@ from urllib.parse import parse_qs, urlencode
 from apify import Actor
 from crawlee import ConcurrencySettings
 from crawlee.crawlers import PlaywrightCrawler, PlaywrightCrawlingContext, PlaywrightPreNavCrawlingContext
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
-from .parsers import (dig, instagram_has_more_comments, nest_replies, parse_facebook, parse_instagram,
-                      parse_meta_tags)
+from .parsers import (dig, has_more_comments, nest_replies, parse_facebook, parse_instagram, parse_meta_tags,
+                      walk)
 
 # Background responses worth keeping. Everything else (images, tracking) is ignored.
 INTERESTING_RESPONSE = re.compile(r"/graphql|/api/v1/|/ajax/", re.I)
@@ -52,6 +53,19 @@ STALE_ROUNDS_OTHERWISE = 2
 # the link turns into "Hide all replies", so each thread is only opened once.
 VIEW_REPLIES = re.compile(r"^\s*View (all )?\d+ (more )?repl", re.I)
 PAGE_OVERHEAD_SECONDS = 60  # page load, splash screen wait, saving rows
+# Text of a dialog that asks the visitor to log in or sign up, else null. A dialog
+# alone isn't enough: Facebook opens posts themselves in a dialog.
+LOGIN_GATE_JS = """() => {
+    for (const d of document.querySelectorAll('div[role="dialog"]')) {
+        const text = d.innerText || '';
+        if (d.querySelector('input[type="password"]')
+                || /\\b(log in|sign up|create new account)\\b/i.test(text)) {
+            return text.replace(/\\s+/g, ' ').slice(0, 200);
+        }
+    }
+    return null;
+}"""
+
 # True once the page has rendered something to load more comments with. Plain DOM
 # code: LOAD_MORE_COMMENTS uses Playwright-only :has-text(), which querySelector rejects.
 HAS_LOAD_MORE_TARGET_JS = """() => {
@@ -108,17 +122,30 @@ async def main() -> None:
         max_comments: int = actor_input.get("maxComments", 50)
         save_raw: bool = actor_input.get("saveRawResponses", True)
 
-        # Optional logged-in session (spare account), made by scripts/save_session.py.
-        session_state: dict | str | None = None
-        if actor_input.get("sessionState"):
-            session_state = json.loads(actor_input["sessionState"])
-        elif path := actor_input.get("sessionStatePath"):
-            if not Path(path).is_file():
-                await Actor.fail(status_message=f"sessionStatePath not found: {path}")
-                return
-            session_state = path
-        if session_state:
-            Actor.log.info("Using a saved logged-in session.")
+        # Optional logged-in sessions (spare accounts), made by scripts/save_session.py.
+        # Each platform's cookies only apply to its own domain, so both are merged
+        # into one browser storage state and a run can mix Instagram and Facebook URLs.
+        session_state: dict | None = None
+        session_platforms: set[str] = set()
+        for platform_name, secret_key, path_key in (
+            ("instagram", "sessionState", "sessionStatePath"),
+            ("facebook", "facebookSessionState", "facebookSessionStatePath"),
+        ):
+            if actor_input.get(secret_key):
+                state = json.loads(actor_input[secret_key])
+            elif path := actor_input.get(path_key):
+                if not Path(path).is_file():
+                    await Actor.fail(status_message=f"{path_key} not found: {path}")
+                    return
+                state = json.loads(Path(path).read_text())
+            else:
+                continue
+            session_state = session_state or {"cookies": [], "origins": []}
+            session_state["cookies"] += state.get("cookies", [])
+            session_state["origins"] += state.get("origins", [])
+            session_platforms.add(platform_name)
+        if session_platforms:
+            Actor.log.info(f"Using saved logged-in sessions for: {', '.join(sorted(session_platforms))}.")
 
         if not start_urls:
             await Actor.fail(status_message="No startUrls provided.")
@@ -260,22 +287,29 @@ async def main() -> None:
             platform = detect_platform(url)
             context.log.info(f"Processing {platform} post: {url}")
 
-            # Let lazy content and background requests finish.
-            await page.wait_for_load_state("networkidle", timeout=30_000)
+            # Let lazy content and background requests finish. Logged-in Facebook keeps
+            # live connections (chat, notifications) open and never goes idle, so a
+            # timeout here is normal; the comments-panel wait below is the real signal.
+            try:
+                await page.wait_for_load_state("networkidle", timeout=30_000)
+            except PlaywrightTimeoutError:
+                context.log.info("Page never went network-idle (normal for logged-in Facebook); continuing.")
 
             # Detect login walls early so you know why data is missing. With a session,
             # a redirect means it expired or Instagram wants the account verified: stop
             # and refresh it by hand with scripts/save_session.py, never automatically.
             if any(part in page.url for part in ("/accounts/login", "/login", "/challenge", "/accounts/suspended")):
-                error = "session_expired" if session_state else "login_wall"
+                error = "session_expired" if platform in session_platforms else "login_wall"
                 context.log.warning(f"Redirected to {page.url} for {url} ({error}).")
                 await context.push_data({"platform": platform, "type": "error", "url": url, "error": error})
                 return
 
-            # Close cookie / login popups if they appear (best effort).
-            for selector in ['button:has-text("Decline optional cookies")',
-                             'button:has-text("Allow all cookies")',
-                             'div[role="dialog"] [aria-label="Close"]']:
+            # Close cookie / login popups if they appear (best effort). Not dialogs on
+            # Facebook: it shows the post itself in a dialog.
+            popups = ['button:has-text("Decline optional cookies")', 'button:has-text("Allow all cookies")']
+            if platform == "instagram":
+                popups.append('div[role="dialog"] [aria-label="Close"]')
+            for selector in popups:
                 try:
                     await page.click(selector, timeout=1_500)
                 except Exception:
@@ -299,6 +333,18 @@ async def main() -> None:
                 except (json.JSONDecodeError, TypeError):
                     pass
 
+            # Facebook can show its login form at the post's own URL instead of
+            # redirecting, so look for a password field when the post isn't in the page.
+            if platform == "facebook" and not any(
+                    isinstance(d.get("node_v2"), dict) for r in inline for d in walk(r["body"])):
+                if await page.locator('input[type="password"]').count():
+                    error = "session_expired" if platform in session_platforms else "login_wall"
+                    context.log.warning(f"Facebook showed a login form instead of {url} ({error}).")
+                    if save_raw:
+                        await Actor.set_value("debug_login_wall", await page.screenshot(), content_type="image/png")
+                    await context.push_data({"platform": platform, "type": "error", "url": url, "error": error})
+                    return
+
             meta = await parse_meta_tags(page)
             if platform == "instagram":
                 parse = parse_instagram
@@ -311,7 +357,7 @@ async def main() -> None:
             pages = 0
             # Logged out only: with a session the page pages through comments itself,
             # so the account only ever sends requests the real page sends.
-            if platform == "instagram" and not session_state:
+            if platform == "instagram" and "instagram" not in session_platforms:
                 bucket = captured.setdefault(url, [])
                 pages = await page_instagram_comments(
                     context, bucket, lambda: len(parse(inline + bucket, meta)[1]))
@@ -331,11 +377,23 @@ async def main() -> None:
             except Exception:
                 context.log.info("No comments panel or load-more control rendered within 20 s.")
 
+            # Logged-in Facebook lists "Most relevant" comments by default, which hides
+            # some. Switch the list to "All comments" before loading more.
+            if platform == "facebook":
+                try:
+                    await page.locator('[role="button"]:has-text("Most relevant")').first.click(timeout=5_000)
+                    await page.wait_for_timeout(random.randint(800, 1_500))
+                    await page.locator('[role="menuitem"]:has-text("All comments")').first.click(timeout=5_000)
+                    await page.wait_for_timeout(random.randint(2_000, 3_500))
+                    context.log.info("Switched the comment list to 'All comments'.")
+                except Exception:
+                    context.log.info("No 'Most relevant' filter to switch; keeping the default comment list.")
+
             clicks = stale = 0
             while clicks < max_rounds and (have := count_comments()) < max_comments:
-                more = instagram_has_more_comments(inline + captured.get(url, [])) if platform == "instagram" else None
+                more = has_more_comments(platform, inline + captured.get(url, []))
                 if more is False:
-                    context.log.info(f"All comments loaded: Instagram says there is no next page ({have} comments).")
+                    context.log.info(f"All comments loaded: {platform} says there is no next page ({have} comments).")
                     break
                 button = page.locator(LOAD_MORE_COMMENTS).first
                 try:
@@ -359,9 +417,10 @@ async def main() -> None:
                 await page.wait_for_timeout(random.randint(1_500, 3_500))
                 # Logged-out Instagram answers with a "View all comments" sign-up dialog
                 # instead of loading more (seen Oct 2026), so stop rather than retry.
-                if dialog := await page.locator('div[role="dialog"]').all_inner_texts():
-                    context.log.info(f"Round {clicks} ({action}): got a dialog instead of more comments "
-                                     f"({have} comments): {dialog[0][:80]!r}")
+                # Facebook shows the post itself in a dialog, so only login prompts count.
+                if gate := await page.evaluate(LOGIN_GATE_JS):
+                    context.log.info(f"Round {clicks} ({action}): got a login prompt instead of more comments "
+                                     f"({have} comments): {gate[:80]!r}")
                     break
                 now = count_comments()
                 context.log.info(f"Round {clicks} ({action}): {have} -> {now} comments")
@@ -393,8 +452,8 @@ async def main() -> None:
                         break  # no unopened reply threads left
                     reply_clicks += 1
                     await page.wait_for_timeout(random.randint(1_500, 3_500))
-                    if dialog := await page.locator('div[role="dialog"]').all_inner_texts():
-                        context.log.info(f"Reply click {reply_clicks}: got a dialog, stopping: {dialog[0][:80]!r}")
+                    if gate := await page.evaluate(LOGIN_GATE_JS):
+                        context.log.info(f"Reply click {reply_clicks}: got a login prompt, stopping: {gate[:80]!r}")
                         break
                     stale = stale + 1 if count_replies() == have else 0
                     if stale >= 2:
